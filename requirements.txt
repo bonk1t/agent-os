@@ -14,7 +14,7 @@ cachetools==5.5.0 ; python_full_version >= "3.11.0a1" and python_version < "3.13
 certifi==2024.8.30 ; python_full_version >= "3.11.0a1" and python_version < "3.13"
 cffi==1.17.1 ; python_full_version >= "3.11.0a1" and python_version < "3.13" and platform_python_implementation != "PyPy"
 charset-normalizer==3.4.0 ; python_full_version >= "3.11.0a1" and python_version < "3.13"
-click==8.1.7 ; python_full_version >= "3.11.0a1" and python_version < "3.13"
+click==8.1.8 ; python_full_version >= "3.11.0a1" and python_version < "3.13"
 colorama==0.4.6 ; python_full_version >= "3.11.0a1" and python_version < "3.13" and (sys_platform == "win32" or platform_system == "Windows")
 cryptography==43.0.1 ; python_full_version >= "3.11.0a1" and python_version < "3.13"
 datamodel-code-generator==0.25.8 ; python_full_version >= "3.11.0a1" and python_version < "3.13"
