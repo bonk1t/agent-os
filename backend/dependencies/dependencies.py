@@ -34,7 +34,7 @@ async def get_websocket(websocket: WebSocket):
 
 def get_redis() -> aioredis.Redis:
     redis_url = str(settings.redis_tls_url or settings.redis_url)
-    redis = aioredis.from_url(redis_url, decode_responses=False, ssl_cert_reqs="none")
+    redis = aioredis.from_url(redis_url, decode_responses=False)
     return redis
 
 
@@ -64,15 +64,14 @@ def get_redis_cache_manager(redis: aioredis.Redis = Depends(get_redis)) -> Redis
 
 def get_user_variable_manager(
     user_variable_storage: UserVariableStorage = Depends(UserVariableStorage),
-    agent_storage: AgentFlowSpecStorage = Depends(AgentFlowSpecStorage)
+    agent_storage: AgentFlowSpecStorage = Depends(AgentFlowSpecStorage),
 ) -> UserVariableManager:
     return UserVariableManager(user_variable_storage, agent_storage)
 
 
-def get_skill_manager(
-    storage: SkillConfigStorage = Depends(SkillConfigStorage),
-) -> SkillManager:
-    return SkillManager(storage)
+def get_skill_manager() -> SkillManager:
+    """Get the skill manager instance."""
+    return SkillManager(SkillConfigStorage())
 
 
 def get_agent_manager(

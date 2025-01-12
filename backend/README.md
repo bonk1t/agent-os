@@ -23,7 +23,7 @@ These instructions will help you set up the project on your local machine for de
 
 ### Prerequisites
 
-- Python 3.11+
+- Python 3.13+
 - Pip
 - Poetry (for development)
 - Google Cloud Platform account

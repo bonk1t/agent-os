@@ -1,12 +1,12 @@
 import json
 from unittest.mock import MagicMock, patch
 
-from backend.custom_skills import SelectFromSQLDatabase
+from backend.custom_skills.SelectFromSQLDatabase import SelectFromSQLDatabase
 
 
-@patch("backend.custom_skills.select_from_sql_database.UserVariableManager")
-@patch("backend.custom_skills.select_from_sql_database.create_engine")
-@patch("backend.custom_skills.select_from_sql_database.sessionmaker")
+@patch("backend.custom_skills.SelectFromSQLDatabase.UserVariableManager")
+@patch("backend.custom_skills.SelectFromSQLDatabase.create_engine")
+@patch("backend.custom_skills.SelectFromSQLDatabase.sessionmaker")
 def test_select_from_db_success(mock_sessionmaker, mock_create_engine, mock_user_variable_manager):
     # Mock the user variable manager to return database credentials
     mock_variable_storage = MagicMock()
@@ -42,9 +42,9 @@ def test_select_from_db_success(mock_sessionmaker, mock_create_engine, mock_user
     mock_session.execute.assert_called_once()
 
 
-@patch("backend.custom_skills.select_from_sql_database.UserVariableManager")
-@patch("backend.custom_skills.select_from_sql_database.create_engine")
-@patch("backend.custom_skills.select_from_sql_database.sessionmaker")
+@patch("backend.custom_skills.SelectFromSQLDatabase.UserVariableManager")
+@patch("backend.custom_skills.SelectFromSQLDatabase.create_engine")
+@patch("backend.custom_skills.SelectFromSQLDatabase.sessionmaker")
 def test_select_from_db_failure(mock_sessionmaker, mock_create_engine, mock_user_variable_manager):
     mock_variable_storage = MagicMock()
     mock_variable_storage.get_by_key.side_effect = ["postgresql://username@host:5432/", "secret"]

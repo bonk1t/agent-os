@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi import HTTPException
@@ -9,6 +9,13 @@ from backend.models.skill_config import SkillConfig
 from backend.services.agent_manager import AgentManager
 from tests.testing_utils import TEST_USER_ID
 from tests.testing_utils.constants import TEST_AGENT_ID
+
+
+@pytest.fixture(autouse=True)
+def mock_skill_registry():
+    with patch("backend.services.agent_manager.skill_registry") as mock:
+        mock.is_registered.side_effect = lambda x: x in {"GenerateProposal", "SearchWeb"}
+        yield mock
 
 
 @pytest.fixture
@@ -47,7 +54,7 @@ async def test_get_agent_list(agent_manager, storage_mock):
 @pytest.mark.asyncio
 async def test_handle_agent_creation_or_update_new_agent(agent_manager, skill_storage_mock):
     config = AgentFlowSpec(config={"name": "Agent1"}, skills=["GenerateProposal"])
-    skill_storage_mock.load_by_titles.return_value = [SkillConfig(title="GenerateProposal", approved=True)]
+    skill_storage_mock.load_by_titles.return_value = [SkillConfig(title="GenerateProposal")]
     agent_manager._create_or_update_agent = AsyncMock(return_value="new_agent_id")
 
     result = await agent_manager.handle_agent_creation_or_update(config, TEST_USER_ID)
@@ -65,7 +72,7 @@ async def test_handle_agent_creation_or_update_existing_agent(agent_manager, sto
     )
     config_db = AgentFlowSpec(id=TEST_AGENT_ID, user_id=TEST_USER_ID, config={"name": "Agent1"})
     storage_mock.load_by_id.return_value = config_db
-    skill_storage_mock.load_by_titles.return_value = [SkillConfig(title="GenerateProposal", approved=True)]
+    skill_storage_mock.load_by_titles.return_value = [SkillConfig(title="GenerateProposal")]
     agent_manager._create_or_update_agent = AsyncMock(return_value="new_agent_id")
 
     result = await agent_manager.handle_agent_creation_or_update(config, TEST_USER_ID)
@@ -172,7 +179,7 @@ async def test_handle_agent_creation_or_update_invalid_name(agent_manager, stora
     )
     config_db = AgentFlowSpec(id=TEST_AGENT_ID, user_id=TEST_USER_ID, config={"name": "Agent1"})
     storage_mock.load_by_id.return_value = config_db
-    skill_storage_mock.load_by_titles.return_value = [SkillConfig(title="GenerateProposal", approved=True)]
+    skill_storage_mock.load_by_titles.return_value = [SkillConfig(title="GenerateProposal")]
 
     with pytest.raises(HTTPException) as exc_info:
         await agent_manager.handle_agent_creation_or_update(config, TEST_USER_ID)
@@ -213,31 +220,3 @@ def test_validate_agent_name_valid(agent_manager):
     agent_manager._validate_agent_name(config, config_db)
 
     # No exception should be raised
-
-
-# Test _validate_skills with valid skills
-def test_validate_skills_valid(agent_manager):
-    skills = ["GenerateProposal", "SearchWeb"]
-    skills_db = [
-        SkillConfig(title="GenerateProposal", approved=True),
-        SkillConfig(title="SearchWeb", approved=True),
-    ]
-
-    agent_manager._validate_skills(skills, skills_db)
-
-    # No exception should be raised
-
-
-# Test _validate_skills with unapproved skills
-def test_validate_skills_unapproved(agent_manager):
-    skills = ["GenerateProposal", "SearchWeb"]
-    skills_db = [
-        SkillConfig(title="GenerateProposal", approved=True),
-        SkillConfig(title="SearchWeb", approved=False),
-    ]
-
-    with pytest.raises(HTTPException) as exc_info:
-        agent_manager._validate_skills(skills, skills_db)
-
-    assert exc_info.value.status_code == 400
-    assert exc_info.value.detail == "Some skills are not approved: {'SearchWeb'}"

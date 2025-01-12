@@ -28,6 +28,18 @@ import {
   MonacoEditor,
 } from "../../atoms";
 
+interface RootState {
+  user: {
+    loggedIn: boolean;
+  };
+}
+
+const defaultSkill: ISkill = {
+  title: "",
+  content: "",
+  description: "",
+};
+
 const SkillsView = ({}: any) => {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<IStatus | null>({
@@ -35,27 +47,59 @@ const SkillsView = ({}: any) => {
     message: "All good",
   });
 
-  const loggedIn = useSelector(state => state.user.loggedIn);
+  const loggedIn = useSelector((state: RootState) => state.user.loggedIn);
   const serverUrl = getServerUrl();
   const listSkillsUrl = `${serverUrl}/skill/list`;
   const saveSkillsUrl = `${serverUrl}/skill`;
   const deleteSkillsUrl = `${serverUrl}/skill`;
 
-  const [skills, setSkills] = React.useState<ISkill[] | null>([]);
-  const [selectedSkill, setSelectedSkill] = React.useState<any>(null);
+  const [selectedSkill, setSelectedSkill] = React.useState<ISkill>(defaultSkill);
+  const [skills, setSkills] = React.useState<ISkill[]>([]);
 
   const [showSkillModal, setShowSkillModal] = React.useState(false);
   const [showNewSkillModal, setShowNewSkillModal] = React.useState(false);
 
   const sampleSkill = getSampleSkill();
-  const [newSkill, setNewSkill] = React.useState<ISkill | null>(sampleSkill);
+  const [newSkill, setNewSkill] = React.useState<ISkill>({
+    ...defaultSkill,
+    ...sampleSkill,
+  });
 
-  const deleteSkill = (skill: ISkill) => {
-    const payLoad = {
-      method: "DELETE",
-      headers: {},
+  const validateSkill = (skill: ISkill): string | null => {
+    if (!skill.title?.trim()) {
+      return "Skill title is required";
+    }
+    if (!skill.content?.trim()) {
+      return "Skill code is required";
+    }
+    return null;
+  };
+
+  const saveSkill = (skill: ISkill) => {
+    const validationError = validateSkill(skill);
+    if (validationError) {
+      message.error(validationError);
+      return;
+    }
+
+    // Ensure all fields are strings
+    const sanitizedSkill: ISkill = {
+      ...defaultSkill,
+      ...skill,
     };
-  
+
+    setError(null);
+    setLoading(true);
+
+    const payLoad = {
+      method: "PUT",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(sanitizedSkill),
+    };
+
     const onSuccess = (data: any) => {
       if (data && data.status) {
         message.success(data.message);
@@ -70,7 +114,30 @@ const SkillsView = ({}: any) => {
       message.error(err.message);
       setLoading(false);
     };
-  
+    fetchJSON(saveSkillsUrl, payLoad, onSuccess, onError);
+  };
+
+  const deleteSkill = (skill: ISkill) => {
+    const payLoad = {
+      method: "DELETE",
+      headers: {},
+    };
+
+    const onSuccess = (data: any) => {
+      if (data && data.status) {
+        message.success(data.message);
+        setSkills(data.data);
+      } else {
+        message.error(data.message);
+      }
+      setLoading(false);
+    };
+    const onError = (err: any) => {
+      setError(err);
+      message.error(err.message);
+      setLoading(false);
+    };
+
     DeleteConfirmation(
       "Delete",
       "Do you want to delete this skill?",
@@ -79,7 +146,7 @@ const SkillsView = ({}: any) => {
         setLoading(true);
         fetchJSON(`${deleteSkillsUrl}?id=${skill.id}`, payLoad, onSuccess, onError);
       }
-    ); 
+    );
   };
 
   const fetchSkills = () => {
@@ -109,40 +176,6 @@ const SkillsView = ({}: any) => {
       setLoading(false);
     };
     fetchJSON(listSkillsUrl, payLoad, onSuccess, onError);
-  };
-
-  const saveSkill = (skill: ISkill) => {
-    setError(null);
-    setLoading(true);
-    // const fetch;
-    const payLoad = {
-      method: "PUT",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(skill),
-    };
-
-    const onSuccess = (data: any) => {
-      if (data && data.status) {
-        message.success(data.message);
-        // console.log("skills", data.data);
-        setSkills(data.data);
-      } else {
-        message.error(data.message);
-      }
-      setLoading(false);
-    };
-    const onError = (err: any) => {
-      setError(err);
-      message.error(err.message);
-      setLoading(false);
-    };
-    // TODO: enable saving skills (currently disabled)
-    // fetchJSON(saveSkillsUrl, payLoad, onSuccess, onError);
-    message.info("Saving skills is disabled for now. Coming soon!");
-    setLoading(false);  // remove this line when saving is enabled
   };
 
   React.useEffect(() => {
@@ -177,9 +210,12 @@ const SkillsView = ({}: any) => {
         icon: DocumentDuplicateIcon,
         onClick: (e: any) => {
           e.stopPropagation();
-          let newSkill = { ...skill };
-          newSkill.title = `${skill.title} Copy`;
-          newSkill.timestamp = new Date().toISOString();
+          const newSkill = {
+            ...defaultSkill,
+            ...skill,
+            title: `${skill.title} Copy`,
+            timestamp: new Date().toISOString(),
+          };
           if (newSkill.id) {
             delete newSkill.id;
           }
@@ -219,9 +255,9 @@ const SkillsView = ({}: any) => {
               setShowSkillModal(true);
             }}
           >
-            <div style={{ minHeight: "65px" }} className="my-2   break-words">
+            <div style={{ minHeight: "65px" }} className="my-2 break-words">
               {" "}
-              {truncateText(skill.description, 70) || truncateText(skill.content, 70)}
+              {truncateText(skill.description || skill.content, 70)}
             </div>
             <div className="text-xs">{timeAgo(skill.timestamp || "")}</div>
             <CardHoverBar items={cardItems} />
@@ -239,20 +275,47 @@ const SkillsView = ({}: any) => {
     setShowSkillModal,
     handler,
   }: {
-    skill: ISkill | null;
-    setSkill: any;
+    skill: ISkill;
+    setSkill: (skill: ISkill) => void;
     showSkillModal: boolean;
-    setShowSkillModal: any;
-    handler: any;
+    setShowSkillModal: (show: boolean) => void;
+    handler: (skill: ISkill) => void;
   }) => {
     const editorRef = React.useRef<any | null>(null);
-    const [localSkill, setLocalSkill] = React.useState<ISkill | null>(skill);
+    const [localSkill, setLocalSkill] = React.useState<ISkill>({
+      ...defaultSkill,
+      ...skill,
+    });
+
+    React.useEffect(() => {
+      setLocalSkill({
+        ...defaultSkill,
+        ...skill,
+      });
+    }, [skill]);
+
+    const handleSave = () => {
+      if (!localSkill) return;
+
+      setShowSkillModal(false);
+      if (editorRef.current) {
+        const content = editorRef.current.getValue() || "";
+        const updatedSkill = {
+          ...defaultSkill,
+          ...localSkill,
+          content,
+        };
+        setSkill(updatedSkill);
+        handler(updatedSkill);
+      }
+    };
+
     return (
       <Modal
         title={
           <>
             Skill Specification{" "}
-            <span className="text-accent font-normal">{localSkill?.title}</span>{" "}
+            <span className="text-accent font-normal">{localSkill.title}</span>{" "}
           </>
         }
         width={800}
@@ -273,42 +336,42 @@ const SkillsView = ({}: any) => {
             key="submit"
             type="primary"
             loading={loading}
-            onClick={() => {
-              setShowSkillModal(false);
-              if (editorRef.current) {
-                const content = editorRef.current.getValue();
-                const updatedSkill = { ...localSkill, content };
-                setSkill(updatedSkill);
-                handler(updatedSkill);
-              }
-            }}
+            onClick={handleSave}
           >
             Save
           </Button>,
         ]}
       >
-        {localSkill && (
-          <div style={{ minHeight: "70vh" }}>
-            <div className="mb-2">
-              <Input
-                placeholder="Skill Title"
-                value={localSkill.title}
-                onChange={(e) => {
-                  const updatedSkill = { ...localSkill, title: e.target.value };
-                  setLocalSkill(updatedSkill);
-                }}
-              />
-            </div>
-
-            <div style={{ height: "70vh" }} className="h-full  mt-2 rounded">
-              <MonacoEditor
-                value={localSkill?.content}
-                language="python"
-                editorRef={editorRef}
-              />
-            </div>
+        <div style={{ minHeight: "70vh" }}>
+          <div className="mb-2">
+            <Input
+              placeholder="Skill Title"
+              value={localSkill.title}
+              onChange={(e) => {
+                const updatedSkill = { ...localSkill, title: e.target.value };
+                setLocalSkill(updatedSkill);
+              }}
+            />
           </div>
-        )}
+          <div className="mb-2">
+            <Input
+              placeholder="Skill Description"
+              value={localSkill.description}
+              onChange={(e) => {
+                const updatedSkill = { ...localSkill, description: e.target.value };
+                setLocalSkill(updatedSkill);
+              }}
+            />
+          </div>
+
+          <div style={{ height: "70vh" }} className="h-full mt-2 rounded">
+            <MonacoEditor
+              value={localSkill.content}
+              language="python"
+              editorRef={editorRef}
+            />
+          </div>
+        </div>
       </Modal>
     );
   };
@@ -400,8 +463,7 @@ const SkillsView = ({}: any) => {
                 placement="bottomRight"
                 trigger={["click"]}
                 onClick={() => {
-                  // setShowNewSkillModal(true);
-                  message.info("Coming soon! You can submit a pull request on our GitHub repository to add your skill.");
+                  setShowNewSkillModal(true);
                 }}
               >
                 <PlusIcon className="w-5 h-5 inline-block mr-1" />

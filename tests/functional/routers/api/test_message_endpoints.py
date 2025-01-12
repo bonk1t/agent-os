@@ -57,7 +57,7 @@ def mock_get_messages():
 # Successful retrieval of messages
 @pytest.mark.usefixtures("mock_get_current_user", "mock_session_storage", "mock_get_messages")
 def test_get_message_list_success(client):
-    response = client.get("/api/v1/message/list?session_id=test_session_id")
+    response = client.get("/api/message/list?session_id=test_session_id")
     assert response.status_code == 200
     assert len(response.json()) == 2
     assert response.json()[0]["content"] == "Hello"
@@ -67,7 +67,7 @@ def test_get_message_list_success(client):
 # Session not found
 @pytest.mark.usefixtures("mock_get_current_user", "mock_get_messages")
 def test_get_message_list_session_not_found(client):
-    response = client.get("/api/v1/message/list?session_id=nonexistent_session_id")
+    response = client.get("/api/message/list?session_id=nonexistent_session_id")
     assert response.status_code == 404
     assert response.json()["data"]["message"] == "Session not found: nonexistent_session_id"
 
@@ -84,7 +84,7 @@ def test_get_message_list_unauthorized(client, mock_firestore_client):
     }
     mock_firestore_client.setup_mock_data("session_configs", "test_session_id", test_session_config)
 
-    response = client.get("/api/v1/message/list?session_id=test_session_id")
+    response = client.get("/api/message/list?session_id=test_session_id")
     assert response.status_code == 403
     assert response.json()["data"]["message"] == "You don't have permissions to access this session"
 
@@ -102,7 +102,7 @@ def test_post_message_success(mock_get_messages, client, mock_construct_agency, 
     mock_firestore_client.setup_mock_data("agency_configs", TEST_AGENCY_ID, agency_data)
 
     # Sending a message
-    response = client.post("/api/v1/message", json=message_data)
+    response = client.post("/api/message", json=message_data)
 
     assert response.status_code == 200
     # We will check for the actual message we set up to be sent
@@ -117,13 +117,13 @@ def test_post_message_success(mock_get_messages, client, mock_construct_agency, 
 # Agency/session configuration not found
 @pytest.mark.usefixtures("mock_get_current_user", "mock_firestore_client", "mock_session_storage")
 def test_post_message_404_error(client, message_data, mock_firestore_client):
-    response = client.post("/api/v1/message", json=message_data)
+    response = client.post("/api/message", json=message_data)
     assert response.status_code == 404
     assert response.json()["data"]["message"] == "Agency not found: test_agency_id"
 
     # second part: remove the session and check if the session not found error is raised
     mock_firestore_client.collection("session_configs").document("test_session_id").delete()
-    response = client.post("/api/v1/message", json=message_data)
+    response = client.post("/api/message", json=message_data)
     assert response.status_code == 404
     assert response.json()["data"]["message"] == "Session not found: test_session_id"
 
@@ -143,7 +143,7 @@ def test_post_message_unauthorized(
     mock_firestore_client.setup_mock_data("session_configs", "test_session_id", session_config_data)
 
     # Sending a message
-    response = client.post("/api/v1/message", json=message_data)
+    response = client.post("/api/message", json=message_data)
 
     assert response.status_code == 403
     assert response.json()["data"]["message"] == "You don't have permissions to access this agency"
@@ -177,7 +177,7 @@ def test_post_message_processing_failure(client, mock_construct_agency, mock_fir
     mock_construct_agency.return_value.get_completion.side_effect = Exception
 
     # Sending a message
-    response = client.post("/api/v1/message", json=message_data)
+    response = client.post("/api/message", json=message_data)
 
     assert response.status_code == 500
     assert response.json()["data"]["message"] == INTERNAL_ERROR_MESSAGE

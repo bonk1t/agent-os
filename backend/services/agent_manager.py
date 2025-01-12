@@ -7,10 +7,9 @@ from agency_swarm import Agent
 from fastapi import HTTPException
 
 from backend.constants import DEFAULT_OPENAI_API_TIMEOUT
-from backend.custom_skills import SKILL_MAPPING
+from backend.custom_skills import skill_registry
 from backend.exceptions import NotFoundError
 from backend.models.agent_flow_spec import AgentFlowSpec
-from backend.models.skill_config import SkillConfig
 from backend.repositories.agent_flow_spec_storage import AgentFlowSpecStorage
 from backend.repositories.skill_config_storage import SkillConfigStorage
 from backend.services.oai_client import get_openai_client
@@ -72,8 +71,7 @@ class AgentManager:
         config.timestamp = datetime.now(UTC).isoformat()
 
         # Validate skills
-        skills_db = self.skill_storage.load_by_titles(config.skills)
-        self._validate_skills(config.skills, skills_db)
+        self._validate_skills(config.skills)
 
         return await self._create_or_update_agent(config)
 
@@ -105,7 +103,7 @@ class AgentManager:
             description=agent_flow_spec.description,
             instructions=agent_flow_spec.config.system_message,
             files_folder=agent_flow_spec.config.code_execution_config.work_dir,
-            tools=[SKILL_MAPPING[skill] for skill in agent_flow_spec.skills],
+            tools=[skill_registry.get_skill(skill) for skill in agent_flow_spec.skills],
             temperature=agent_flow_spec.config.temperature,
             model=agent_flow_spec.config.model,
         )
@@ -123,18 +121,12 @@ class AgentManager:
         if config.config.name != config_db.config.name:
             raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail="Renaming agents is not supported yet")
 
-    @staticmethod
-    def _validate_skills(skills: list[str], skills_db: list[SkillConfig]) -> None:
+    def _validate_skills(self, skills: list[str]) -> None:
         # Check if all skills are supported
-        unsupported_skills = set(skills) - set(SKILL_MAPPING.keys())
+        available_skills = self.skill_storage.load_by_titles(skills)
+        available_skill_titles = {skill.title for skill in available_skills}
+        unsupported_skills = {skill for skill in skills if skill not in available_skill_titles}
         if unsupported_skills:
             raise HTTPException(
                 status_code=HTTPStatus.BAD_REQUEST, detail=f"Some skills are not supported: {unsupported_skills}"
-            )
-
-        # Check if all skills are approved
-        unapproved_skills = set(skills) - {skill.title for skill in skills_db if skill.approved}
-        if unapproved_skills:
-            raise HTTPException(
-                status_code=HTTPStatus.BAD_REQUEST, detail=f"Some skills are not approved: {unapproved_skills}"
             )

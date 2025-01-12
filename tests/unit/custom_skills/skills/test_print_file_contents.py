@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from backend.custom_skills import PrintFileContents
+from backend.custom_skills.PrintFileContents import PrintFileContents
 
 
 @pytest.fixture

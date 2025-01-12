@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from backend.custom_skills.get_sql_database_metadata import GetSQLDatabaseMetadata
+from backend.custom_skills.GetSQLDatabaseMetadata import GetSQLDatabaseMetadata
 from backend.services.user_variable_manager import UserVariableManager
 
 
@@ -23,10 +23,10 @@ def test_run_success(get_sql_database_metadata, mock_user_variable_manager):
     mock_user_variable_manager.get_by_key.side_effect = ["postgresql://username@host:port/", "password"]
 
     with (
-        patch("backend.custom_skills.get_sql_database_metadata.create_engine") as mock_create_engine,
-        patch("backend.custom_skills.get_sql_database_metadata.MetaData") as mock_metadata,
+        patch("backend.custom_skills.GetSQLDatabaseMetadata.create_engine") as mock_create_engine,
+        patch("backend.custom_skills.GetSQLDatabaseMetadata.MetaData") as mock_metadata,
         patch(
-            "backend.custom_skills.get_sql_database_metadata.UserVariableManager",
+            "backend.custom_skills.GetSQLDatabaseMetadata.UserVariableManager",
             return_value=mock_user_variable_manager,
         ),
     ):
@@ -70,10 +70,10 @@ def test_run_exception(get_sql_database_metadata, mock_user_variable_manager, ca
     caplog.set_level(logging.INFO)
 
     with (
-        patch("backend.custom_skills.get_sql_database_metadata.create_engine") as mock_create_engine,
-        patch("backend.custom_skills.get_sql_database_metadata.MetaData") as mock_metadata,
+        patch("backend.custom_skills.GetSQLDatabaseMetadata.create_engine") as mock_create_engine,
+        patch("backend.custom_skills.GetSQLDatabaseMetadata.MetaData") as mock_metadata,
         patch(
-            "backend.custom_skills.get_sql_database_metadata.UserVariableManager",
+            "backend.custom_skills.GetSQLDatabaseMetadata.UserVariableManager",
             return_value=mock_user_variable_manager,
         ),
     ):

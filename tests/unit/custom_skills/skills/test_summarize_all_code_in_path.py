@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from backend.custom_skills import SummarizeAllCodeInPath
+from backend.custom_skills.SummarizeAllCodeInPath import SummarizeAllCodeInPath
 
 
 @pytest.fixture

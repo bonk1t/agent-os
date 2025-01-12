@@ -2,7 +2,7 @@ from pydantic import Field, RedisDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 LARGE_GPT_MODEL = "gpt-4o"
-SMALL_GPT_MODEL = "gpt-3.5-turbo"
+SMALL_GPT_MODEL = "gpt-4o-mini"
 
 
 class Settings(BaseSettings):

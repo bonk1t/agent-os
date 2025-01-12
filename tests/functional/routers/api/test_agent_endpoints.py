@@ -19,15 +19,15 @@ def test_get_agent_list(agent_config_data_api, agent_config_data_db, client, moc
     mock_firestore_client.setup_mock_data(
         "skill_configs",
         "GenerateProposal",
-        {"title": "GenerateProposal", "approved": True, "timestamp": "2024-05-05T00:14:57.487901+00:00"},
+        {"title": "GenerateProposal", "timestamp": "2024-05-05T00:14:57.487901+00:00"},
     )
     mock_firestore_client.setup_mock_data(
         "skill_configs",
         "SearchWeb",
-        {"title": "SearchWeb", "approved": True, "timestamp": "2024-05-05T00:14:57.487901+00:00"},
+        {"title": "SearchWeb", "timestamp": "2024-05-05T00:14:57.487901+00:00"},
     )
 
-    response = client.get("/api/v1/agent/list")
+    response = client.get("/api/agent/list")
     assert response.status_code == 200
     assert response.json()["data"] == [agent_config_data_api]
 
@@ -38,15 +38,15 @@ def test_get_agent_list_owned_by_user(agent_config_data_api, agent_config_data_d
     mock_firestore_client.setup_mock_data(
         "skill_configs",
         "GenerateProposal",
-        {"title": "GenerateProposal", "approved": True, "timestamp": "2024-05-05T00:14:57.487901+00:00"},
+        {"title": "GenerateProposal", "timestamp": "2024-05-05T00:14:57.487901+00:00"},
     )
     mock_firestore_client.setup_mock_data(
         "skill_configs",
         "SearchWeb",
-        {"title": "SearchWeb", "approved": True, "timestamp": "2024-05-05T00:14:57.487901+00:00"},
+        {"title": "SearchWeb", "timestamp": "2024-05-05T00:14:57.487901+00:00"},
     )
 
-    response = client.get("/api/v1/agent/list?owned_by_user=true")
+    response = client.get("/api/agent/list?owned_by_user=true")
     assert response.status_code == 200
     assert response.json()["data"] == [agent_config_data_api]
 
@@ -57,15 +57,15 @@ def test_get_agent_config(client, agent_config_data_api, agent_config_data_db, m
     mock_firestore_client.setup_mock_data(
         "skill_configs",
         "GenerateProposal",
-        {"title": "GenerateProposal", "approved": True, "timestamp": "2024-05-05T00:14:57.487901+00:00"},
+        {"title": "GenerateProposal", "timestamp": "2024-05-05T00:14:57.487901+00:00"},
     )
     mock_firestore_client.setup_mock_data(
         "skill_configs",
         "SearchWeb",
-        {"title": "SearchWeb", "approved": True, "timestamp": "2024-05-05T00:14:57.487901+00:00"},
+        {"title": "SearchWeb", "timestamp": "2024-05-05T00:14:57.487901+00:00"},
     )
 
-    response = client.get(f"/api/v1/agent?id={TEST_AGENT_ID}")
+    response = client.get(f"/api/agent?id={TEST_AGENT_ID}")
     assert response.status_code == 200
     assert response.json()["data"] == agent_config_data_api
 
@@ -76,18 +76,18 @@ def test_update_agent_success(client, agent_config_data_api, agent_config_data_d
     mock_firestore_client.setup_mock_data(
         "skill_configs",
         "GenerateProposal",
-        {"title": "GenerateProposal", "approved": True, "timestamp": "2024-05-05T00:14:57.487901+00:00"},
+        {"title": "GenerateProposal", "timestamp": "2024-05-05T00:14:57.487901+00:00"},
     )
     mock_firestore_client.setup_mock_data(
         "skill_configs",
         "SearchWeb",
-        {"title": "SearchWeb", "approved": True, "timestamp": "2024-05-05T00:14:57.487901+00:00"},
+        {"title": "SearchWeb", "timestamp": "2024-05-05T00:14:57.487901+00:00"},
     )
     expected_data = agent_config_data_api.copy()
     expected_data["config"]["name"] = "Sender Agent (test_user_id)"
     expected_data["timestamp"] = mock.ANY
 
-    response = client.put("/api/v1/agent", json=agent_config_data_api)
+    response = client.put("/api/agent", json=agent_config_data_api)
 
     assert response.status_code == 200
     assert response.json()["data"] == [expected_data]
@@ -99,7 +99,7 @@ def test_update_agent_user_id_mismatch(client, agent_config_data_api, agent_conf
     agent_data_db["user_id"] = "other_user"
     mock_firestore_client.setup_mock_data("agent_configs", TEST_AGENT_ID, agent_data_db)
 
-    response = client.put("/api/v1/agent", json=agent_config_data_api)
+    response = client.put("/api/agent", json=agent_config_data_api)
 
     assert response.status_code == 403
     assert response.json() == {"data": {"message": "You don't have permissions to access this agent"}}
@@ -108,16 +108,14 @@ def test_update_agent_user_id_mismatch(client, agent_config_data_api, agent_conf
 @pytest.mark.usefixtures("mock_get_current_user")
 def test_create_agent_from_template(client, agent_config_data_api, mock_firestore_client, caplog):
     caplog.set_level("INFO")
-    mock_firestore_client.setup_mock_data(
-        "skill_configs", "GenerateProposal", {"title": "GenerateProposal", "approved": True}
-    )
-    mock_firestore_client.setup_mock_data("skill_configs", "SearchWeb", {"title": "SearchWeb", "approved": True})
+    mock_firestore_client.setup_mock_data("skill_configs", "GenerateProposal", {"title": "GenerateProposal"})
+    mock_firestore_client.setup_mock_data("skill_configs", "SearchWeb", {"title": "SearchWeb"})
     agent_config_data_api["user_id"] = None
 
     with patch("backend.services.agent_manager.AgentManager._construct_agent") as mock_construct_agent:
         mock_construct_agent.return_value = Mock(id=TEST_AGENT_ID)
 
-        response = client.put("/api/v1/agent", json=agent_config_data_api)
+        response = client.put("/api/agent", json=agent_config_data_api)
 
     assert response.status_code == 200
     assert response.json()["data"][0]["id"] == TEST_AGENT_ID
@@ -128,6 +126,11 @@ def test_create_agent_from_template(client, agent_config_data_api, mock_firestor
 @pytest.mark.usefixtures("mock_get_current_user")
 def test_update_agent_invalid_skill(client, agent_config_data_api, agent_config_data_db, mock_firestore_client):
     mock_firestore_client.setup_mock_data("agent_configs", TEST_AGENT_ID, agent_config_data_db)
+    mock_firestore_client.setup_mock_data(
+        "skill_configs",
+        "SearchWeb",
+        {"title": "SearchWeb", "timestamp": "2024-05-05T00:14:57.487901+00:00"},
+    )
     agent_config_data_api["skills"] = [
         SkillConfig(title="NonExistentSkill").model_dump(),
         SkillConfig(title="SearchWeb").model_dump(),
@@ -137,23 +140,10 @@ def test_update_agent_invalid_skill(client, agent_config_data_api, agent_config_
         mock_agent_manager.return_value = AsyncMock()
         mock_agent_manager.return_value.create_or_update_agent.return_value = TEST_AGENT_ID
 
-        response = client.put("/api/v1/agent", json=agent_config_data_api)
+        response = client.put("/api/agent", json=agent_config_data_api)
 
     assert response.status_code == 400
     assert response.json() == {"data": {"message": "Some skills are not supported: {'NonExistentSkill'}"}}
-
-
-@pytest.mark.usefixtures("mock_get_current_user")
-def test_update_agent_unapproved_skill(client, agent_config_data_api, agent_config_data_db, mock_firestore_client):
-    mock_firestore_client.setup_mock_data("agent_configs", TEST_AGENT_ID, agent_config_data_db)
-    agent_config_data_api["skills"] = [
-        SkillConfig(title="SearchWeb", approved=False).model_dump(),
-    ]
-
-    response = client.put("/api/v1/agent", json=agent_config_data_api)
-
-    assert response.status_code == 400
-    assert response.json() == {"data": {"message": "Some skills are not approved: {'SearchWeb'}"}}
 
 
 @pytest.mark.usefixtures("mock_get_current_user")
@@ -164,7 +154,7 @@ def test_delete_agent_success(client, agent_config_data_db, mock_firestore_clien
         mock_agent_manager.return_value = AsyncMock()
         mock_agent_manager.return_value.delete_agent.return_value = TEST_AGENT_ID
 
-        response = client.delete(f"/api/v1/agent?id={TEST_AGENT_ID}")
+        response = client.delete(f"/api/agent?id={TEST_AGENT_ID}")
 
     assert response.status_code == 200
     assert response.json()["data"] == []
@@ -177,7 +167,7 @@ def test_delete_agent_user_id_mismatch(client, agent_config_data_db, mock_firest
     agent_data_db["user_id"] = "other_user"
     mock_firestore_client.setup_mock_data("agent_configs", TEST_AGENT_ID, agent_data_db)
 
-    response = client.delete(f"/api/v1/agent?id={TEST_AGENT_ID}")
+    response = client.delete(f"/api/agent?id={TEST_AGENT_ID}")
 
     assert response.status_code == 403
     assert response.json() == {"data": {"message": "You don't have permissions to access this agent"}}
@@ -195,7 +185,7 @@ def test_delete_agent_used_in_agencies(client, agent_config_data_db, mock_firest
     mock_firestore_client.setup_mock_data("agent_configs", TEST_AGENT_ID, agent_config_data_db)
     mock_firestore_client.setup_mock_data("agency_configs", "test_agency_id", agency_data)
 
-    response = client.delete(f"/api/v1/agent?id={TEST_AGENT_ID}")
+    response = client.delete(f"/api/agent?id={TEST_AGENT_ID}")
 
     assert response.status_code == 400
     assert response.json() == {

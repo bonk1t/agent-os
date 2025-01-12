@@ -36,15 +36,14 @@ class SkillConfigStorage:
         results = [SkillConfig.model_validate(document_snapshot.to_dict()) for document_snapshot in query.stream()]
         return results
 
-    def save(self, skill_config: SkillConfig) -> tuple[str, int]:
+    def save(self, skill_config: SkillConfig) -> str:
         collection = self.db.collection(self.collection_name)
         if skill_config.id is None:
             # Create a new document and set the id
             document_reference = collection.add(skill_config.model_dump())[1]
             skill_config.id = document_reference.id
         collection.document(skill_config.id).set(skill_config.model_dump())
-
-        return skill_config.id, skill_config.version
+        return skill_config.id
 
     def delete(self, id_: str) -> None:
         collection = self.db.collection(self.collection_name)

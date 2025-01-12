@@ -1,6 +1,6 @@
 import pytest
 
-from backend.custom_skills import PrintAllFilesInPath
+from backend.custom_skills.PrintAllFilesInPath import PrintAllFilesInPath
 
 
 def test_print_all_files_no_extension_filter(temp_dir):

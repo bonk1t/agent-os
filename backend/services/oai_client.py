@@ -1,4 +1,4 @@
-import instructor
+import httpx
 import openai
 
 from backend.exceptions import UnsetVariableError
@@ -26,14 +26,12 @@ def get_openai_client(
             azure_api_key = user_variable_manager.get_by_key("AZURE_OPENAI_API_KEY")
             api_version = user_variable_manager.get_by_key("OPENAI_API_VERSION")
             azure_endpoint = user_variable_manager.get_by_key("AZURE_OPENAI_ENDPOINT")
-            return instructor.patch(
-                openai.AzureOpenAI(
-                    api_key=azure_api_key,
-                    api_version=api_version,
-                    azure_endpoint=azure_endpoint,
-                    timeout=5,
-                    max_retries=5,
-                )
+            return openai.AzureOpenAI(
+                api_key=azure_api_key,
+                api_version=api_version,
+                azure_endpoint=azure_endpoint,
+                timeout=httpx.Timeout(60.0, read=30, connect=5.0),
+                max_retries=5,
             )
         except UnsetVariableError:
             # Fall back to OpenAI setup if Azure key is not set
@@ -47,4 +45,9 @@ def get_openai_client(
         except UnsetVariableError as err:
             raise ValueError("API key not provided and no valid API key found in user variables") from err
 
-    return instructor.patch(openai.OpenAI(api_key=api_key, max_retries=5))
+    return openai.OpenAI(
+        api_key=api_key,
+        timeout=httpx.Timeout(60.0, read=30, connect=5.0),
+        max_retries=5,
+        default_headers={"OpenAI-Beta": "assistants=v2"},
+    )

@@ -1,0 +1,49 @@
+# Version control
+.git
+.gitignore
+
+# Dependencies
+node_modules
+frontend/node_modules
+**/__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env
+pip-log.txt
+pip-delete-this-directory.txt
+.tox
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+
+# Poetry
+.venv
+dist
+poetry.toml
+poetry/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Development
+*.md
+LICENSE
+tests/
+*.test.js
+*.spec.js
+.vscode
+.idea
+
+# Build artifacts
+frontend/public
+frontend/.cache
+dist
+*.egg-info/

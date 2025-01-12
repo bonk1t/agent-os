@@ -3,35 +3,34 @@ name = "backend"
 version = "0.1.0"
 description = "A FastAPI app to manage AI teams."
 authors = [
-    "AI in Hand <hello@ainhand.com>"
+    "Agent OS <hello@agentoss.org>"
 ]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.11.0a1,<3.13"
-agency-swarm = "0.2.6"
-cachetools = "^5.5.0"
-cryptography = "^43.0.1"
-fastapi = "^0.115.0"
-duckduckgo-search = "^6.3.0"
-firebase-admin = "^6.3.0"
-google-cloud-logging = "^3.11.2"
-gunicorn = "^23.0.0"
-instructor = "^1.2.2"
-openai = "^1.23.3"
-oracledb = "^2.4.1"
-passlib = {extras = ["bcrypt"], version = "^1.7.4"}
-psycopg2-binary = "^2.9.9"
-pyairtable = "^2.3.3"
-pydantic = "^2.9.2"
-pydantic-settings = "^2.5.2"
-pymysql = "^1.1.1"
-pyodbc = "^5.1.0"
-redis = "^5.1.1"
-sqlalchemy = "^1.4.54"
-sqlalchemy-redshift = "^0.8.14"
-tiktoken = "^0.8.0"
-uvicorn = {extras = ["standard"], version = "^0.31.0"}
+python = ">=3.13,<4.0.0"
+agency-swarm = "0.4.2"
+cachetools = ">=5.5.0"
+cryptography = ">=44.0.0"
+fastapi = ">=0.115.0"
+duckduckgo-search = ">=7.0.0"
+firebase-admin = ">=6.3.0"
+google-cloud-logging = ">=3.11.2"
+gunicorn = ">=23.0.0"
+openai = ">=1.58.1"
+oracledb = ">=2.4.1"
+passlib = {extras = ["bcrypt"], version = ">=1.7.4"}
+psycopg2-binary = ">=2.9.9"
+pyairtable = ">=3.0.1"
+pydantic = ">=2.8.2"
+pydantic-settings = ">=2.5.2"
+pymysql = ">=1.1.1"
+pyodbc = ">=5.1.0"
+redis = ">=5.1.1"
+sqlalchemy = ">=1.4.54"
+sqlalchemy-redshift = ">=0.8.14"
+tiktoken = ">=0.8.0"
+uvicorn = {extras = ["standard"], version = ">=0.34.0"}
 
 [tool.poetry.group.dev.dependencies]
 poetry-plugin-export = ">=1.6.0"
@@ -49,7 +48,7 @@ exclude = [".cache"]
 [tool.ruff]
 # https://beta.ruff.rs/docs/configuration/
 line-length = 120
-target-version = "py311"
+target-version = "py313"
 
 [tool.ruff.lint]
 ignore = ['W291', 'W292', 'W293']

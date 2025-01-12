@@ -889,7 +889,7 @@ export const AgentFlowSpecView = ({
                   onControlChange(value, "model");
                 }}
                 onDeselect={(value: any) => {
-                  onControlChange("gpt-3.5-turbo", "model");
+                  onControlChange("gpt-4o", "model");
                 }}
               />
             }
@@ -1331,7 +1331,7 @@ export const FlowConfigViewer = ({
 }) => {
   const [localFlowConfig, setLocalFlowConfig] =
     React.useState<IFlowConfig>(flowConfig);
-    
+
   const [agentListData, setAgentListData] = useState(null);
 
   const updateFlowConfig = (key: string, value: string) => {

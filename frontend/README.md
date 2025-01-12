@@ -52,11 +52,11 @@ To add new pages:
 
 ## 🔗 Connecting to the Backend
 
-The frontend expects the backend API to be available at `http://localhost:8000/api/v1`.
+The frontend expects the backend API to be available at `http://localhost:8000/api`.
 
 ## ⚙️ Setting Environment Variables for the UI
 
 - Refer to `.env.default`.
 - Copy this file and rename it to `.env.development`.
-- Set the variable values, particularly `GATSBY_API_URL`, which should be `http://localhost:8000/api/v1` for local development environments.
+- Set the variable values, particularly `GATSBY_API_URL`, which should be `http://localhost:8000/api` for local development environments.
 - Set up Firebase Authentication and Firestore and update the src/firebase/firebaseConfig.json file with your Firebase project configuration.

@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import httpx
 import pytest
@@ -27,7 +27,7 @@ def mock_agency_adapter_to_raise_pydantic_validation_error():
 
 @pytest.fixture
 def mock_agent_storage_to_raise_openai_authentication_error():
-    request = httpx.Request(method="GET", url="http://testserver/api/v1/agent?id=123")
+    request = httpx.Request(method="GET", url="http://testserver/api/agent?id=123")
     response = httpx.Response(401, request=request)
     exception = OpenAIAuthenticationError("Authentication Error", response=response, body={})
     with patch.object(AgentFlowSpecStorage, "load_by_id", side_effect=exception):
@@ -56,7 +56,7 @@ def test_pydantic_validation_error(caplog, client, agency_adapter, mock_firestor
     mock_firestore_client.setup_mock_data("agent_configs", "sender_agent_id", agent_config_data_db)
     agency_data_api = agency_adapter.to_api(AgencyConfig(**agency_data_db)).model_dump()
 
-    response = client.put("/api/v1/agency", json=agency_data_api)
+    response = client.put("/api/agency", json=agency_data_api)
 
     assert response.status_code == 400
     assert "message" in response.json()["data"]
@@ -74,7 +74,7 @@ def test_request_validation_error(client):
         "flows": [{"sender": None, "receiver": None}],
     }
 
-    response = client.put("/api/v1/agency", json=template_config)
+    response = client.put("/api/agency", json=template_config)
     assert response.status_code == 422
     assert "message" in response.json()["data"]
     assert response.json()["data"]["message"] == "Sender agent is required"
@@ -94,16 +94,36 @@ def test_http_exception(client, mock_firestore_client, agent_config_data_db):
     agent_config_data_db["user_id"] = "another_user_id"
     mock_firestore_client.setup_mock_data("agent_configs", "123", agent_config_data_db)
 
-    response = client.get("/api/v1/agent?id=123")
+    # Mock the agent manager to raise an HTTPException
+    from http import HTTPStatus
 
-    assert response.status_code == 403
-    assert "message" in response.json()["data"]
-    assert response.json()["data"]["message"] == "You don't have permissions to access this agent"
+    from fastapi import HTTPException
+
+    from backend.routers.api.agent import get_agent_manager
+
+    def mock_get_agent_manager():
+        manager = MagicMock()
+        manager.get_agent.side_effect = HTTPException(
+            status_code=HTTPStatus.FORBIDDEN, detail="You don't have permissions to access this agent"
+        )
+        return manager
+
+    from backend.main import api_app
+
+    api_app.dependency_overrides[get_agent_manager] = mock_get_agent_manager
+
+    try:
+        response = client.get("/api/agent?id=123")
+        assert response.status_code == 403
+        assert "message" in response.json()["data"]
+        assert response.json()["data"]["message"] == "You don't have permissions to access this agent"
+    finally:
+        api_app.dependency_overrides.pop(get_agent_manager, None)
 
 
 @pytest.mark.usefixtures("mock_get_current_user")
 def test_not_found_error(client):
-    response = client.get("/api/v1/agent?id=123")
+    response = client.get("/api/agent?id=123")
     assert response.status_code == 404
     assert "message" in response.json()["data"]
     assert "Agent not found: 123" in response.json()["data"]["message"]
@@ -112,17 +132,17 @@ def test_not_found_error(client):
 @pytest.mark.usefixtures("mock_get_current_user", "mock_agent_storage_to_raise_openai_authentication_error")
 def test_openai_authentication_error(client, caplog):
     caplog.set_level("WARNING")
-    response = client.get("/api/v1/agent?id=123")
+    response = client.get("/api/agent?id=123")
     assert response.status_code == 401
     assert "message" in response.json()["data"]
     assert "Authentication Error" in response.json()["data"]["message"]
-    assert "request: http://testserver/api/v1/agent?id=123 exc: Authentication Error" in caplog.text
+    assert "request: http://testserver/api/agent?id=123 exc: Authentication Error" in caplog.text
 
 
 @pytest.mark.usefixtures("mock_get_current_user")
 def test_unset_variable_error(client):
     with patch.object(AgencyManager, "get_agency", side_effect=UnsetVariableError(key="MISSING_KEY")):
-        response = client.post("/api/v1/session?agency_id=123")
+        response = client.post("/api/session?agency_id=123")
     assert response.status_code == 400
     assert "message" in response.json()["data"]
     assert "Variable MISSING_KEY is not set. Please set it first." in response.json()["data"]["message"]
@@ -132,7 +152,7 @@ def test_unset_variable_error(client):
 def test_unhandled_exception(client, caplog):
     caplog.set_level("ERROR")
 
-    client.get("/api/v1/agency?id=123")
+    client.get("/api/agency?id=123")
 
     assert "Unhandled Exception" in caplog.text
-    assert "request: http://testserver/api/v1/agency?id=123" in caplog.text
+    assert "request: http://testserver/api/agency?id=123" in caplog.text

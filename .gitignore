@@ -8,7 +8,6 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-build/
 develop-eggs/
 dist/
 downloads/
@@ -164,7 +163,11 @@ cython_debug/
 settings.json
 
 .env
+.env.docker
 
 # UI folder
 backend/ui/*
 backend/data/agency_data/*
+
+
+.DS_Store

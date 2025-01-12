@@ -2,7 +2,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from backend.custom_skills.generate_proposal import GenerateProposal
+from backend.custom_skills.GenerateProposal import GenerateProposal
 
 
 @pytest.fixture

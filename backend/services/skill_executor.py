@@ -37,8 +37,7 @@ The function call parameters must be returned in JSON format.\
 
     def _get_skill_arguments(self, function_spec: str, user_prompt: str) -> str:
         user_prompt = (
-            f"{self.USER_PROMPT_PREFIX}\n```\n{user_prompt}\n```. \n"
-            f"The function specification:\n```{function_spec}```"
+            f"{self.USER_PROMPT_PREFIX}\n```\n{user_prompt}\n```. \nThe function specification:\n```{function_spec}```"
         )
         args_str = get_chat_completion(
             system_message=self.SYSTEM_MESSAGE, user_prompt=user_prompt, temperature=0.0, model=settings.gpt_model
@@ -47,11 +46,13 @@ The function call parameters must be returned in JSON format.\
 
     @staticmethod
     def _get_skill_class(skill_name: str) -> BaseTool:
-        """Get a skill function by name from custom_skills"""
+        """Get a skill class by name from SKILL_MAPPING"""
         try:
-            return getattr(custom_skills, skill_name)
-        except AttributeError as e:
-            logger.exception(f"Skill not found: {skill_name}")
+            if skill_name not in custom_skills.SKILL_MAPPING:
+                raise KeyError(f"Skill not found: {skill_name}")
+            return custom_skills.SKILL_MAPPING[skill_name]
+        except Exception as e:
+            logger.exception(f"Error getting skill: {skill_name}")
             raise RuntimeError(f"Skill not found: {skill_name}") from e
 
     @staticmethod

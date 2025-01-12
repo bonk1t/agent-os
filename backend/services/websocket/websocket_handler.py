@@ -1,13 +1,13 @@
 import asyncio
 import logging
+from typing import override
 
 from agency_swarm import Agency
+from agency_swarm.util.streaming import AgencyEventHandler
 from fastapi import HTTPException, WebSocket, WebSocketDisconnect
 from openai import AuthenticationError as OpenAIAuthenticationError
-from openai.lib.streaming import AssistantEventHandler
 from openai.types.beta.threads import Text, TextDelta
 from openai.types.beta.threads.runs import ToolCall, ToolCallDelta
-from typing_extensions import override
 from websockets.exceptions import ConnectionClosedOK
 
 from backend.constants import INTERNAL_ERROR_MESSAGE
@@ -183,7 +183,7 @@ class WebSocketHandler:
         connection_manager = self.connection_manager
         loop = asyncio.get_running_loop()
 
-        class WebSocketEventHandler(AssistantEventHandler):
+        class WebSocketEventHandler(AgencyEventHandler):
             agent_name = None
             recipient_agent_name = None
 

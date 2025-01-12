@@ -11,9 +11,7 @@ def skill_data():
         "id": "skill1",
         "user_id": TEST_USER_ID,
         "title": "Example Skill",
-        "version": 1,
         "content": 'print("Hello, World!")',
-        "approved": False,
         "timestamp": "2024-05-05T00:14:57.487901+00:00",
     }
 
@@ -50,7 +48,7 @@ def test_save_new_skill_config(mock_storage, mock_firestore_client, skill_data):
     del new_skill_data["id"]  # Simulate a new skill without an id
     skill_config = SkillConfig(**new_skill_data)
 
-    skill_id, _ = mock_storage.save(skill_config)
+    skill_id = mock_storage.save(skill_config)
 
     assert skill_id == "skill2"
 

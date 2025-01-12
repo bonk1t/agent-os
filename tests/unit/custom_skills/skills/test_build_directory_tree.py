@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from backend.custom_skills import BuildDirectoryTree
+from backend.custom_skills.BuildDirectoryTree import BuildDirectoryTree
 
 
 def test_build_directory_tree_with_py_extension(temp_dir):

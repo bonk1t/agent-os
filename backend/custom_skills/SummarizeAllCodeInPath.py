@@ -4,7 +4,7 @@ from pathlib import Path
 from agency_swarm import BaseTool
 from pydantic import Field
 
-from backend.custom_skills import PrintAllFilesInPath
+from backend.custom_skills.PrintAllFilesInPath import PrintAllFilesInPath
 from backend.settings import settings
 from backend.utils import chunk_input_with_token_limit, get_chat_completion
 
@@ -51,9 +51,7 @@ class SummarizeAllCodeInPath(BaseTool):
         default=None,
         description="Truncate the output to this many characters. If None or skipped, the output is not truncated.",
     )
-    model: str = Field(
-        default=settings.gpt_small_model, description="A model to use for summarization, defaults to gpt-3.5-turbo"
-    )
+    model: str = Field(default=settings.gpt_model, description="A model to use for summarization, defaults to gpt-4o")
 
     def run(self, api_key: str | None = None) -> str:
         """Run the skill and return the output."""

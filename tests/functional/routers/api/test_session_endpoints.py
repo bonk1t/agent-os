@@ -17,7 +17,7 @@ def test_get_session_list(session_config_data, client, mock_firestore_client):
     expected_session_data = session_config_data.copy()
     expected_session_data["flow_config"] = mock.ANY
 
-    response = client.get("/api/v1/session/list")
+    response = client.get("/api/session/list")
     assert response.status_code == 200
     assert response.json()["data"] == [expected_session_data]
 
@@ -40,7 +40,7 @@ def test_create_session_success(client, mock_firestore_client):
         }
         mock_firestore_client.setup_mock_data("agency_configs", TEST_AGENCY_ID, agency_config)
 
-        response = client.post(f"/api/v1/session?agency_id={TEST_AGENCY_ID}")
+        response = client.post(f"/api/session?agency_id={TEST_AGENCY_ID}")
         # Assertions
         assert response.status_code == 200
         assert response.json()["data"] == [
@@ -72,7 +72,7 @@ def test_create_session_agency_not_found(client, mock_firestore_client):
     with patch.object(
         AgencyManager, "get_agency", AsyncMock(side_effect=NotFoundError("Agency", TEST_AGENCY_ID))
     ) as mock_get_agency:
-        response = client.post("/api/v1/session?agency_id=test_session_id")
+        response = client.post("/api/session?agency_id=test_session_id")
         assert response.status_code == 404
         assert response.json() == {"data": {"message": "Agency not found: test_agency_id"}}
         assert mock_firestore_client.collection("session_configs").to_dict() == {}
@@ -90,7 +90,7 @@ def test_rename_session_success(
     expected_response["name"] = "New session name"
     expected_response["flow_config"] = mock.ANY
 
-    response = client.post("/api/v1/session/rename", json={"id": "test_session_id", "name": "New session name"})
+    response = client.post("/api/session/rename", json={"id": "test_session_id", "name": "New session name"})
     assert response.status_code == 200
     assert response.json()["data"] == [expected_response]
     # Check if the session config was updated
@@ -106,7 +106,7 @@ def test_rename_session_success(
 
 @pytest.mark.usefixtures("mock_get_current_user")
 def test_rename_session_not_found(client, mock_firestore_client):
-    response = client.post("/api/v1/session/rename", json={"id": "test_session_id", "name": "New session name"})
+    response = client.post("/api/session/rename", json={"id": "test_session_id", "name": "New session name"})
     assert response.status_code == 404
     assert response.json() == {"data": {"message": "Session not found: test_session_id"}}
     assert mock_firestore_client.collection("session_configs").to_dict() == {}
@@ -116,7 +116,7 @@ def test_rename_session_not_found(client, mock_firestore_client):
 def test_delete_session_success(client, mock_firestore_client, session_config_data):
     mock_firestore_client.setup_mock_data("session_configs", "test_session_id", session_config_data)
 
-    response = client.delete("/api/v1/session?id=test_session_id")
+    response = client.delete("/api/session?id=test_session_id")
     assert response.status_code == 200
     assert response.json()["data"] == []
     # Check if the session config was deleted

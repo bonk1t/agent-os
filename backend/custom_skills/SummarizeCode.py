@@ -4,7 +4,7 @@ from pathlib import Path
 from agency_swarm import BaseTool
 from pydantic import Field
 
-from backend.custom_skills import PrintFileContents
+from backend.custom_skills.PrintFileContents import PrintFileContents
 from backend.settings import settings
 from backend.utils import get_chat_completion
 
@@ -32,9 +32,7 @@ class SummarizeCode(BaseTool):
     file_name: Path = Field(
         ..., description="The name of the file to be summarized. It can be a relative or absolute path."
     )
-    model: str = Field(
-        default=settings.gpt_small_model, description="A model to use for summarization, defaults to gpt-3.5-turbo"
-    )
+    model: str = Field(default=settings.gpt_model, description="A model to use for summarization, defaults to gpt-4o")
 
     def run(self, api_key: str | None = None) -> str:
         code = PrintFileContents(file_name=self.file_name).run()

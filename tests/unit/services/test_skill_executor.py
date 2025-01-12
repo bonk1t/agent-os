@@ -7,7 +7,9 @@ from backend.services.skill_executor import SkillExecutor
 
 def test_get_skill_class_found():
     skill_name = "SummarizeCode"
-    with patch("backend.services.skill_executor.custom_skills.SummarizeCode", new_callable=MagicMock) as mock_skill:
+    mock_skill = MagicMock()
+
+    with patch("backend.custom_skills.SKILL_MAPPING", {skill_name: mock_skill}):
         service = SkillExecutor()
         result = service._get_skill_class(skill_name)
         assert result == mock_skill, "The function did not return the correct skill class"
@@ -15,10 +17,11 @@ def test_get_skill_class_found():
 
 def test_get_skill_class_not_found():
     skill_name = "NonExistingSkill"
-    service = SkillExecutor()
-    with pytest.raises(Exception) as exc_info:
-        service._get_skill_class(skill_name)
-    assert "Skill not found: NonExistingSkill" in str(exc_info.value)
+    with patch("backend.custom_skills.SKILL_MAPPING", {}):
+        service = SkillExecutor()
+        with pytest.raises(RuntimeError) as exc_info:
+            service._get_skill_class(skill_name)
+        assert "Skill not found: NonExistingSkill" in str(exc_info.value)
 
 
 def test_get_skill_arguments():
@@ -39,9 +42,9 @@ def test_execute_skill_success():
     with patch("backend.services.skill_executor.SkillExecutor._get_skill_class", return_value=skill_class_mock):
         service = SkillExecutor()
         result = service._execute_skill(skill_class_mock, args)
-        assert (
-            result == "Skill output"
-        ), "The function did not execute the skill correctly or failed to return its output"
+        assert result == "Skill output", (
+            "The function did not execute the skill correctly or failed to return its output"
+        )
 
 
 def test_execute_skill_failure():
@@ -53,6 +56,6 @@ def test_execute_skill_failure():
     with patch("backend.services.skill_executor.SkillExecutor._get_skill_class", return_value=skill_class_mock):
         service = SkillExecutor()
         result = service._execute_skill(skill_class_mock, args)
-        assert (
-            "Error: Error running skill" in result
-        ), "The function did not handle exceptions from skill execution properly"
+        assert "Error: Error running skill" in result, (
+            "The function did not handle exceptions from skill execution properly"
+        )

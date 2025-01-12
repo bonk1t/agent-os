@@ -1,4 +1,4 @@
-# exceptions.py - Custom exceptions for the AI in Hand Platform
+# exceptions.py - Custom exceptions for the Agent OS Platform
 # This file is reserved for custom exception classes.
 
 

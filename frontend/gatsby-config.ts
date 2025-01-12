@@ -16,7 +16,7 @@ require("dotenv").config({
 const config: GatsbyConfig = {
   pathPrefix: `${process.env.PREFIX_PATH_VALUE}`,
   siteMetadata: {
-    title: `AI in Hand Platform [Beta]`,
+    title: `Agent OS Platform [Beta]`,
     description: `Build AI Teams`,
     siteUrl: `http://tbd.place`,
   },

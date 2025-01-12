@@ -5,8 +5,10 @@ import sys
 from pathlib import Path
 
 import firebase_admin
+import openai
 import tiktoken
 from firebase_admin import credentials
+from pydantic import BaseModel
 
 from backend.repositories.agent_flow_spec_storage import AgentFlowSpecStorage
 from backend.repositories.user_variable_storage import UserVariableStorage
@@ -61,16 +63,43 @@ def get_chat_completion(system_message: str, user_prompt: str, model: str, api_k
     if api_key:
         client = get_openai_client(api_key=api_key)
     else:
-        client = get_openai_client(user_variable_manager=UserVariableManager(UserVariableStorage(), AgentFlowSpecStorage()))
+        client = get_openai_client(
+            user_variable_manager=UserVariableManager(UserVariableStorage(), AgentFlowSpecStorage())
+        )
     completion = client.chat.completions.create(
         model=model,
         messages=[
-            {"role": "system", "content": system_message},
+            {"role": "system" if not model.startswith("o") else "user", "content": system_message},
             {"role": "user", "content": user_prompt},
         ],
         **kwargs,
     )
     return completion.choices[0].message.content
+
+
+def get_chat_completion_structured(
+    system_message: str, user_prompt: str, model: str, response_format: BaseModel, api_key: str | None = None, **kwargs
+) -> BaseModel:
+    """Generate a structured chat completion based on a prompt and a system message.
+    This function is a wrapper around the OpenAI API that returns parsed structured data."""
+    if api_key:
+        client: openai.OpenAI = get_openai_client(api_key=api_key)
+    else:
+        client = get_openai_client(
+            user_variable_manager=UserVariableManager(UserVariableStorage(), AgentFlowSpecStorage())
+        )
+
+    completion = client.beta.chat.completions.parse(
+        model=model,
+        messages=[
+            {"role": "system", "content": system_message},
+            {"role": "user", "content": user_prompt},
+        ],
+        response_format=response_format,
+        **kwargs,
+    )
+
+    return completion.choices[0].message.parsed
 
 
 def tokenize(text: str, model: str) -> list[int]:

@@ -2,7 +2,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from backend.custom_skills.summarize_code import SummarizeCode
+from backend.custom_skills.SummarizeCode import SummarizeCode
 
 
 @pytest.fixture

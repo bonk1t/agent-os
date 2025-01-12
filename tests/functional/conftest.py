@@ -1,3 +1,6 @@
+from pathlib import Path
+from unittest.mock import patch
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -58,23 +61,21 @@ def agent_config_data_api():
         "config": {
             "name": "Sender Agent",
             "system_message": "Do something important.",
-            "model": "gpt-3.5-turbo",
+            "model": "gpt-4o",
             "code_execution_config": {
                 "work_dir": None,
                 "use_docker": False,
             },
-            "temperature": 0.0
+            "temperature": 0.0,
         },
         "timestamp": "2024-05-05T00:14:57.487901+00:00",
         "skills": [
-            SkillConfig(
-                title="GenerateProposal", approved=True, timestamp="2024-05-05T00:14:57.487901+00:00"
-            ).model_dump(),
-            SkillConfig(title="SearchWeb", approved=True, timestamp="2024-05-05T00:14:57.487901+00:00").model_dump(),
+            SkillConfig(title="GenerateProposal", timestamp="2024-05-05T00:14:57.487901+00:00").model_dump(),
+            SkillConfig(title="SearchWeb", timestamp="2024-05-05T00:14:57.487901+00:00").model_dump(),
         ],
         "description": "An example agent.",
         "user_id": TEST_USER_ID,
-        "temperature": 0.0
+        "temperature": 0.0,
     }
 
 
@@ -83,3 +84,25 @@ def agent_config_data_db(agent_config_data_api):
     db_config = agent_config_data_api.copy()
     db_config["skills"] = ["GenerateProposal", "SearchWeb"]
     return db_config
+
+
+@pytest.fixture(autouse=True)
+def mock_file_system_auto():
+    """Automatically mock file system for all tests."""
+
+    class MockFileSystem:
+        def __init__(self):
+            self.files = {}
+
+        def write_file(self, path: Path, content: str) -> None:
+            self.files[str(path)] = content
+
+        def remove_file(self, path: Path) -> None:
+            self.files.pop(str(path), None)
+
+        def file_exists(self, path: Path) -> bool:
+            return str(path) in self.files
+
+    mock_fs = MockFileSystem()
+    with patch("backend.services.skill_manager.RealFileSystem", return_value=mock_fs):
+        yield mock_fs

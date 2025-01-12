@@ -15,7 +15,7 @@ class DirectoryNode:
     def __init__(self, path: Path, level: int):
         self.path = path
         self.level = level
-        self.children: list[DirectoryNode | "FileNode"] = []  # List of DirectoryNode and FileNode
+        self.children: list[DirectoryNode | FileNode] = []  # List of DirectoryNode and FileNode
 
 
 class FileNode:

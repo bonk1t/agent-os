@@ -48,7 +48,7 @@ async def test_process_messages_openai_authentication_error(websocket_handler):
     websocket = AsyncMock(spec=WebSocket)
     client_id = "client_id"
     expected_error_message = "Authentication Error"
-    request = httpx.Request(method="GET", url="http://testserver/api/v1/agent?id=123")
+    request = httpx.Request(method="GET", url="http://testserver/api/agent?id=123")
     response = httpx.Response(401, request=request)
 
     with patch.object(

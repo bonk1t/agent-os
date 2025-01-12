@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock, patch
 
+import httpx
 import pytest
 
 from backend.exceptions import UnsetVariableError
@@ -17,14 +18,7 @@ def mock_azure_openai_client(recover_oai_client):  # noqa: ARG001
         yield mock
 
 
-@pytest.fixture
-def mock_instructor_patch(recover_oai_client):  # noqa: ARG001
-    with patch("backend.services.oai_client.instructor.patch") as mock:
-        mock.return_value = MagicMock(name="OpenAI_Client_Patched")
-        yield mock
-
-
-def test_get_openai_client_uses_correct_api_key(mock_openai_client, mock_instructor_patch):
+def test_get_openai_client_uses_correct_api_key(mock_openai_client):
     # Setup
     from backend.services.oai_client import get_openai_client
 
@@ -41,12 +35,16 @@ def test_get_openai_client_uses_correct_api_key(mock_openai_client, mock_instruc
     # Verify
     mock_user_variable_manager.get_by_key.assert_any_call("AZURE_OPENAI_API_KEY")
     mock_user_variable_manager.get_by_key.assert_any_call("OPENAI_API_KEY")
-    mock_openai_client.assert_called_with(api_key=expected_api_key, max_retries=5)
-    mock_instructor_patch.assert_called_once()
-    assert client == mock_instructor_patch.return_value, "The function should return a patched OpenAI client"
+    mock_openai_client.assert_called_with(
+        api_key=expected_api_key,
+        timeout=httpx.Timeout(60.0, read=30, connect=5.0),
+        max_retries=5,
+        default_headers={"OpenAI-Beta": "assistants=v2"},
+    )
+    assert client == mock_openai_client.return_value
 
 
-def test_get_openai_client_uses_azure_openai_when_keys_are_set(mock_azure_openai_client, mock_instructor_patch):
+def test_get_openai_client_uses_azure_openai_when_keys_are_set(mock_azure_openai_client):
     # Setup
     from backend.services.oai_client import get_openai_client
 
@@ -71,14 +69,13 @@ def test_get_openai_client_uses_azure_openai_when_keys_are_set(mock_azure_openai
         api_key=expected_azure_api_key,
         api_version=expected_api_version,
         azure_endpoint=expected_azure_endpoint,
-        timeout=5,
+        timeout=httpx.Timeout(60.0, read=30, connect=5.0),
         max_retries=5,
     )
-    mock_instructor_patch.assert_called_once()
-    assert client == mock_instructor_patch.return_value, "The function should return a patched Azure OpenAI client"
+    assert client == mock_azure_openai_client.return_value
 
 
-def test_get_openai_client_falls_back_to_openai_when_azure_keys_are_not_set(mock_openai_client, mock_instructor_patch):
+def test_get_openai_client_falls_back_to_openai_when_azure_keys_are_not_set(mock_openai_client):
     # Setup
     from backend.services.oai_client import get_openai_client
 
@@ -95,9 +92,13 @@ def test_get_openai_client_falls_back_to_openai_when_azure_keys_are_not_set(mock
     # Verify
     mock_user_variable_manager.get_by_key.assert_any_call("AZURE_OPENAI_API_KEY")
     mock_user_variable_manager.get_by_key.assert_any_call("OPENAI_API_KEY")
-    mock_openai_client.assert_called_with(api_key=expected_api_key, max_retries=5)
-    mock_instructor_patch.assert_called_once()
-    assert client == mock_instructor_patch.return_value, "The function should return a patched OpenAI client"
+    mock_openai_client.assert_called_with(
+        api_key=expected_api_key,
+        timeout=httpx.Timeout(60.0, read=30, connect=5.0),
+        max_retries=5,
+        default_headers={"OpenAI-Beta": "assistants=v2"},
+    )
+    assert client == mock_openai_client.return_value
 
 
 @pytest.mark.usefixtures("recover_oai_client")

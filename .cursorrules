@@ -1,0 +1,160 @@
+# Agent OS Platform Design
+
+## System Overview
+The Agent OS Platform is a FastAPI-based system for running AI agents with dynamic tool creation and secure execution capabilities.
+
+## Core Architecture
+
+### Components
+1. **Master Container (FastAPI)**
+   - Handles user interactions
+   - Manages agent lifecycles
+   - Coordinates tool execution
+   - Runs on Python 3.13 (slim image)
+
+2. **E2B Integration**
+   - On-demand sandbox creation for tool execution
+   - One sandbox per tool execution
+   - Short-lived containers (destroyed after tool completion)
+   - Maximum execution time: 10 minutes (OpenAI limit)
+   - Firecracker microVM-based isolation
+   - Supports any Linux-compatible framework
+   - Handles package installation and I/O
+
+3. **Redis Message Bus**
+   - Inter-component communication
+   - State management
+   - Event distribution
+
+4. **Tool Registry**
+   - Firestore-based tool storage
+   - Tools stored as standalone Python code
+   - Each tool includes all dependencies
+   - No caching or hot-reloading
+
+### Development Environment
+1. **Local Development**
+   - Docker Compose based setup
+   - E2B for sandbox isolation
+   - Redis for message passing
+   - Firestore emulator for storage
+
+2. **Production Environment**
+   - Similar to local but with real Firestore
+   - E2B for production sandboxes
+   - Potential future K8s migration
+
+## Security Model
+
+### Tool Execution
+1. **E2B Sandbox**
+   - Created on-demand for each tool execution
+   - Destroyed immediately after tool completion
+   - No session pooling or reuse
+   - Clean environment for each execution
+   - Resource limits enforcement
+   - Network isolation
+   - Secure file system access
+
+2. **Tool Validation**
+   - Static code analysis
+   - Security checks
+   - Dependency scanning
+   - Automated testing
+
+### Access Control
+1. **Authentication**
+   - Firebase Authentication
+   - JWT validation
+   - Role-based access
+
+2. **Authorization**
+   - Tool execution permissions
+   - Admin capabilities
+   - User isolation
+
+## System Self-Improvement
+
+### AI-Driven Updates
+1. **Code Generation**
+   - AI creates/modifies platform code
+   - Generates pull requests
+   - Must pass all tests
+   - Manual review required
+
+2. **Tool Creation**
+   - AI generates new tools
+   - Automated validation
+   - Security scanning
+
+### Quality Assurance
+1. **Testing**
+   - Very high coverage requirement
+   - Integration tests
+   - Security tests
+   - Performance benchmarks
+
+2. **Monitoring**
+   - Execution metrics
+   - Error tracking
+   - Resource usage
+   - User analytics
+
+## Implementation Notes
+
+### Current State
+- Single container deployment
+- File-based tool storage
+- Basic security validation
+- Manual tool approval
+
+### Migration Path
+1. **Phase 1: E2B Integration**
+   - Add E2B sandbox support
+   - Implement on-demand container creation
+   - Add container cleanup after tool execution
+   - Implement security checks
+   - Add execution timeouts (10-minute limit)
+
+2. **Phase 2: Message Bus**
+   - Redis integration
+   - State management
+   - Event system
+
+3. **Phase 3: Tool Registry**
+   - Move to pure Firestore storage
+   - Remove file-based storage
+   - Implement standalone tool format
+
+### Design Principles
+1. **Simplicity**
+   - Minimal abstractions
+   - Clear responsibilities
+   - Direct communication
+
+2. **Security**
+   - Isolated execution
+   - Validated tools
+   - Access control
+
+3. **Maintainability**
+   - Clear documentation
+   - High test coverage
+   - Automated improvements
+
+## Maintenance Instructions
+
+This file (.cursorrules) serves as the source of truth for system design.
+When making significant changes:
+
+1. Update this file first
+2. Ensure consistency with implementation
+3. Remove or update other docs if needed
+4. Keep this file in sync with:
+   - README.md (high-level overview)
+   - docker-compose.yml (deployment)
+   - backend/services/* (implementation)
+
+---
+Last Updated: [Current Date]
+Update this file when making architectural changes.

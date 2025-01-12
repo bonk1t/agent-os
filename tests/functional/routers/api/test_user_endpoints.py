@@ -29,7 +29,7 @@ def test_get_variables(client, mock_firestore_client):
     mock_firestore_client.setup_mock_data(
         "user_variables", TEST_USER_ID, {"VARIABLE1": "value1", "VARIABLE2": "value2"}
     )
-    response = client.get("/api/v1/user/settings/variables")
+    response = client.get("/api/user/settings/variables")
     assert response.status_code == 200
     assert response.json()["data"] == ["OPENAI_API_KEY", "VARIABLE1", "VARIABLE2"]
 
@@ -37,7 +37,7 @@ def test_get_variables(client, mock_firestore_client):
 @pytest.mark.usefixtures("mock_get_current_user")
 def test_update_variables(client, mock_firestore_client):
     variables = {"VARIABLE1": "value1", "VARIABLE2": "value2"}
-    response = client.put("/api/v1/user/settings/variables", json=variables)
+    response = client.put("/api/user/settings/variables", json=variables)
     assert response.status_code == 200
     assert response.json() == {
         "message": "Variables updated successfully",
@@ -55,7 +55,7 @@ def test_update_open_ai_key_variable_fail(client, mock_firestore_client, agent_d
         "user_variables", TEST_USER_ID, {"OPENAI_API_KEY": EncryptionService(settings.encryption_key).encrypt("value1")}
     )
     variables = {"OPENAI_API_KEY": "value2"}
-    response = client.put("/api/v1/user/settings/variables", json=variables)
+    response = client.put("/api/user/settings/variables", json=variables)
     assert response.status_code == 200
     assert response.json() == {
         "message": "Please delete all agents and teams to update the Open AI API key",

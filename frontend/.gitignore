@@ -3,5 +3,4 @@ node_modules/
 public/
 
 package-lock.json
-yarn.lock
 firebaseConfig.json
