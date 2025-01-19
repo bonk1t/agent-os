@@ -62,10 +62,10 @@
     "sweetalert2": "^11.15.10",
     "tailwindcss": "^3.0.24",
     "uuid": "^11.0.5",
-    "zustand": "^5.0.0"
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
-    "@types/node": "^22.1.0",
+    "@types/node": "^22.10.5",
     "@types/papaparse": "^5.3.14",
     "@types/react": "^18.2.48",
     "@types/react-dom": "^18.2.0",
@@ -73,6 +73,6 @@
     "@types/react-resizable": "^3.0.2",
     "@types/uuid": "^10.0.0",
     "gh-pages": "^6.3.0",
-    "typescript": "^5.4.5"
+    "typescript": "^5.7.3"
   }
 }
