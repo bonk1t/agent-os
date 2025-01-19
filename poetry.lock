@@ -2,13 +2,13 @@
 
 [[package]]
 name = "agency-swarm"
-version = "0.4.2"
+version = "0.4.4"
 description = "An open source agent orchestration framework built on top of the latest OpenAI Assistants API."
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.10"
 files = [
-    {file = "agency_swarm-0.4.2-py3-none-any.whl", hash = "sha256:d37ddb2a11bd11d471aec5096ce41611d9d2762bc26fcfe13c9b08e7a4dd420e"},
-    {file = "agency_swarm-0.4.2.tar.gz", hash = "sha256:853cc383d9d3271fb5e6ba6eb3f5b4dfe5e823019d78fbef58e1209762a1b0d5"},
+    {file = "agency_swarm-0.4.4-py3-none-any.whl", hash = "sha256:d95237db42259f4a2ba2dc1e8ee7fdd0b0eb554c61402f078a01a968650ef2d1"},
+    {file = "agency_swarm-0.4.4.tar.gz", hash = "sha256:6d0290c8ecfd6b54eaae6ad2b9a6fd6643c99a913f1e17fa8f4171e666c3ebc2"},
 ]
 
 [package.dependencies]
@@ -4035,4 +4035,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.13,<4.0.0"
-content-hash = "c7cc74167bff16fdcbb46b223199364ed25e8e22f31752ea4c723cc5463eacdc"
+content-hash = "3fa6e65f51840c4049d6f0370b557c4ba9fae3b8444d3aebdfff7ca369f28351"
