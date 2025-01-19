@@ -44,7 +44,7 @@
     "jszip": "^3.10.1",
     "lodash.debounce": "^4.0.8",
     "papaparse": "^5.5.1",
-    "postcss": "^8.4.13",
+    "postcss": "^8.5.0",
     "react": "^18.2.0",
     "react-contenteditable": "^3.3.6",
     "react-dom": "^18.2.0",
