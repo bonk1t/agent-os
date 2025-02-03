@@ -126,7 +126,17 @@ The Agent OS Platform is a FastAPI-based system for running AI agents with dynam
    - Remove file-based storage
    - Implement standalone tool format
 
-### Design Principles
+### Plan of Work
+1. **Remove 'agency-swarm' references and adopt 'o3-mini-high model'**
+   - Eliminate any “agency-swarm” code or references.
+   - Replace those sections with the “o3-mini-high model,” invoking openai.chat.completions.create for AI-driven tasks.
+   - Always use async methods for all openai calls. Read their library source code to understand how to use them.
+
+2. **Refactor Existing Components**
+   - Update function signatures with type hints.
+   - Preserve comments while streamlining code to meet current security standards.
+
+## Design Principles
 1. **Simplicity**
    - Minimal abstractions
    - Clear responsibilities
