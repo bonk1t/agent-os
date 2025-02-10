@@ -14205,10 +14205,10 @@ swap-case@^2.0.2:
   dependencies:
     tslib "^2.0.3"
 
-sweetalert2@^11.15.10:
-  version "11.15.10"
-  resolved "https://registry.yarnpkg.com/sweetalert2/-/sweetalert2-11.15.10.tgz#315ed4d0933bb1b6fbd7d0daf3d160bd3cc78b64"
-  integrity sha512-Sjiwcd5mWiz8X0JFkHsso2EPVQHrLCjVv+xR6Ry2LKf4KY6kSi4U5pM0Tgmn1c7SMfkyDqPal2NWqwj6vck8bw==
+sweetalert2@^11.16.0:
+  version "11.16.0"
+  resolved "https://registry.yarnpkg.com/sweetalert2/-/sweetalert2-11.16.0.tgz#cdff0a963ed5c95a4d1c5752a160fefa5f6da008"
+  integrity sha512-4CGgNMpQHcwV+Gov0j4u3lDc/5lyl04NBsa1vW0Se9cqsrQoUimD6/Z5UyZiRP4kMbwQGyb7wsp0x3ytybti6w==
 
 system-architecture@^0.1.0:
   version "0.1.0"
