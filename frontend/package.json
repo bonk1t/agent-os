@@ -23,7 +23,7 @@
     "@mdx-js/mdx": "^3.0.1",
     "@mdx-js/react": "^2.3.0",
     "@monaco-editor/react": "^4.6.0",
-    "@reduxjs/toolkit": "^2.2.3",
+    "@reduxjs/toolkit": "^2.5.1",
     "@tailwindcss/line-clamp": "^0.4.0",
     "@tailwindcss/typography": "^0.5.9",
     "@types/lodash.debounce": "^4.0.9",
