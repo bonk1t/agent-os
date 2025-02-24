@@ -1,7 +1,12 @@
+import importlib
+import inspect
 import json
 import logging
+import os
+import sys
 
 from agency_swarm import BaseTool
+from e2b_code_interpreter import Sandbox
 
 from backend import custom_skills
 from backend.settings import settings
@@ -61,12 +66,47 @@ The function call parameters must be returned in JSON format.\
             return f"Error: Skill {skill_class.__name__} not found"
 
         try:
-            # init skill
-            func = skill_class(**eval(args))
-            # get outputs from the skill
-            return func.run()
+            # Ensure args are properly parsed
+            parsed_args = json.loads(args)
+
+            # Add backend directory to sys.path (for relative imports)
+            backend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))  # Navigate up to backend
+            sys.path.append(backend_path)
+
+            # Initialize E2B sandbox
+            api_key = os.environ.get("E2B_API_KEY", "")
+            sandbox = Sandbox(api_key=api_key)
+
+            # Dynamically import the correct class using the skill name
+            try:
+                # Construct the module path dynamically based on the skill name
+                module_name = f'backend.custom_skills.{skill_class.__name__.lower()}'
+                module = importlib.import_module(module_name)
+
+                # Get the class source code dynamically
+                class_code = inspect.getsource(getattr(module, skill_class.__name__))
+            except ModuleNotFoundError as e:
+                return f"Error: {str(e)}"
+
+            # Embed the class code and skill execution inside the sandbox
+            script = f"""
+            import json
+            from agency_swarm import BaseTool
+
+            {class_code}  # Embed the class code
+
+            # Initialize the skill with provided arguments
+            skill_instance = {skill_class.__name__}(**{parsed_args})
+
+            # Run the skill and print output
+            print(skill_instance.run())
+            """
+
+            # Run script inside E2B sandbox
+            sandbox.commands.run("pip install agency_swarm")
+            result = sandbox.run_code(script)
+            return result.logs.stdout[0].strip()
+
         except Exception as e:
             error_message = f"Error: {e}"
-            if "For further information visit" in error_message:
-                error_message = error_message.split("For further information visit")[0]
             return error_message

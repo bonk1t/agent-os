@@ -265,6 +265,7 @@ Code:
             config.id = None
 
         # Check permissions if updating existing skill
+        config_db = None
         if config.id:
             config_db = self.get_skill_config(config.id)
             self.check_user_permissions(config_db, current_user_id)
