@@ -209,7 +209,7 @@ class SkillManager:
             )
 
     def _evaluate_skill_safety(self, config: SkillConfig) -> tuple[bool, str]:
-        """Evaluate if a skill is safe to use using o1-mini.
+        """Evaluate if a skill is safe to use using o3-mini.
 
         :param config: The skill configuration to evaluate
         :return: A tuple of (is_safe, reason)
@@ -232,7 +232,7 @@ Code:
             initial_response = get_chat_completion(
                 system_message=SKILL_SAFETY_SYSTEM_MESSAGE,
                 user_prompt=skill_description,
-                model="o1-mini",
+                model="o3-mini",
             )
 
             # Second call to parse the response into structured format
