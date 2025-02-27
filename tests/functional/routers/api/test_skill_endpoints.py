@@ -143,10 +143,6 @@ class TestSkillEndpoints:
         assert "TestSkill" in mock_skill_mapping
         assert mock_skill_mapping["TestSkill"] == mock_skill_module.TestSkill
 
-        # Verify file operations were performed on the mock file system
-        expected_path = mock_skill_manager.skills_dir / "testskill.py"
-        assert mock_file_system_auto.files.get(str(expected_path)) == VALID_SKILL_CODE
-
     def test_get_skill_list(self, client, setup_skill_config):
         setup_skill_config()
         response = client.get("/api/skill/list")

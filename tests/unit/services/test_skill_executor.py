@@ -1,3 +1,5 @@
+import json
+import os
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -33,29 +35,35 @@ def test_get_skill_arguments():
         mock_get_chat.assert_called_once()
 
 
-def test_execute_skill_success():
-    skill_class_mock = MagicMock()
-    skill_instance_mock = skill_class_mock.return_value
-    skill_instance_mock.run.return_value = "Skill output"
-    args = '{"arg":"value"}'
+@patch("backend.services.skill_executor.Sandbox")
+def test_execute_skill_success(mock_sandbox):
+    mock_sandbox_instance = mock_sandbox.return_value
+    mock_sandbox_instance.run_code.return_value.logs.stdout = ["Skill output"]
 
-    with patch("backend.services.skill_executor.SkillExecutor._get_skill_class", return_value=skill_class_mock):
+    skill = MagicMock()
+    skill.title = "TestSkill"
+    skill.content = f"class TestSkill:\n    def __init__(self, arg):\n        self.arg = arg\n    def run(self):\n        return 'Skill output'"
+    args = json.dumps({"arg": "value"})
+
+    with patch.dict(os.environ, {"E2B_API_KEY": "test_api_key"}):
         service = SkillExecutor()
-        result = service._execute_skill(skill_class_mock, args)
-        assert result == "Skill output", (
-            "The function did not execute the skill correctly or failed to return its output"
-        )
+        result = service._execute_skill(skill, args)
+
+    assert result == "Skill output", "The function did not execute the skill correctly or failed to return its output"
 
 
-def test_execute_skill_failure():
-    skill_class_mock = MagicMock()
-    skill_instance_mock = skill_class_mock.return_value
-    skill_instance_mock.run.side_effect = Exception("Error running skill")
-    args = '{"arg":"value"}'
+@patch("backend.services.skill_executor.Sandbox")
+def test_execute_skill_failure(mock_sandbox):
+    mock_sandbox_instance = mock_sandbox.return_value
+    mock_sandbox_instance.run_code.side_effect = Exception("Error running skill")
 
-    with patch("backend.services.skill_executor.SkillExecutor._get_skill_class", return_value=skill_class_mock):
+    skill = MagicMock()
+    skill.title = "TestSkill"
+    skill.content = "class TestSkill:\n    def __init__(self, arg):\n        self.arg = arg\n    def run(self):\n        return 'Skill output'"
+    args = json.dumps({"arg": "value"})
+
+    with patch.dict(os.environ, {"E2B_API_KEY": "test_api_key"}):
         service = SkillExecutor()
-        result = service._execute_skill(skill_class_mock, args)
-        assert "Error: Error running skill" in result, (
-            "The function did not handle exceptions from skill execution properly"
-        )
+        result = service._execute_skill(skill, args)
+
+    assert "Error: Error running skill" in result, "The function did not handle exceptions from skill execution properly"

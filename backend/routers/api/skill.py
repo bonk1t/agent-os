@@ -89,6 +89,6 @@ async def execute_skill(
     if config.user_id:
         manager.check_user_permissions(config, current_user.id)
 
-    output = executor.execute_skill(config.title, payload.user_prompt)
+    output = executor.execute_skill(config, payload.user_prompt)
 
     return ExecuteSkillResponse(data=output)
