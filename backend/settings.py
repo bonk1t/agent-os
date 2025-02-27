@@ -14,11 +14,18 @@ class Settings(BaseSettings):
 
     gpt_model: str = Field(default=LARGE_GPT_MODEL)
     gpt_small_model: str = Field(default=SMALL_GPT_MODEL)
+    openai_api_key: str | None = Field(default=None)
     redis_tls_url: RedisDsn | None = Field(default=None)
     redis_url: RedisDsn = Field(default="redis://localhost:6379/1")
     encryption_key: bytes = Field(default=b"")
     mailchimp_api_key: str | None = Field(default=None)
     mailchimp_list_id: str | None = Field(default=None)
+
+    # E2B Configuration
+    e2b_api_key: str | None = Field(default=None)
+    e2b_sandbox_timeout: int = Field(default=600)  # 10 minutes max execution time
+    e2b_sandbox_memory: int = Field(default=1024)  # 1GB memory limit
+    e2b_sandbox_cpu: float = Field(default=1.0)    # 1 CPU core
 
     model_config = SettingsConfigDict(env_file=".env")
 

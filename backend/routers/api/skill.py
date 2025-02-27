@@ -81,6 +81,7 @@ async def execute_skill(
     executor: SkillExecutor = Depends(SkillExecutor),
 ) -> ExecuteSkillResponse:
     """Execute a skill by using the user prompt as input to GPT-4, which fills in the skill kwargs.
+    The skill is executed in a secure E2B sandbox.
     Returns the output of the skill."""
     config = manager.get_skill_config(payload.id)
     manager.check_user_permissions(config, current_user.id)
@@ -89,6 +90,7 @@ async def execute_skill(
     if config.user_id:
         manager.check_user_permissions(config, current_user.id)
 
-    output = executor.execute_skill(config.title, payload.user_prompt)
+    # Execute the skill in a secure sandbox
+    output = await executor.execute_skill(config.title, payload.user_prompt)
 
     return ExecuteSkillResponse(data=output)

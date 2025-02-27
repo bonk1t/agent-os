@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -213,7 +213,7 @@ class TestSkillEndpoints:
         assert response.status_code == 404
         assert response.json() == {"data": {"message": "Skill not found: nonexistent_skill"}}
 
-    @patch("backend.services.skill_executor.SkillExecutor.execute_skill", MagicMock(return_value="Execution result"))
+    @patch("backend.services.skill_executor.SkillExecutor.execute_skill", AsyncMock(return_value="Execution result"))
     def test_execute_skill_success(self, client, skill_config_data, setup_skill_config):
         setup_skill_config()
 
