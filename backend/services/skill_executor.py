@@ -81,9 +81,6 @@ The function call parameters must be returned in JSON format.\
 
             # Embed the class code and skill execution inside the sandbox
             script = f"""
-            import json
-            from agency_swarm import BaseTool
-
             {class_code}  # Embed the class code
 
             # Initialize the skill with provided arguments
