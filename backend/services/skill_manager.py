@@ -285,7 +285,7 @@ Code:
                 )
 
         # Initialize the skill
-        self._initialize_skill(config)
+        # self._initialize_skill(config)
 
         # Save the approved skill to storage
         skill_id = self.storage.save(config)

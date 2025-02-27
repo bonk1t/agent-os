@@ -1,14 +1,12 @@
-import importlib
-import inspect
 import json
 import logging
 import os
-import sys
 
 from agency_swarm import BaseTool
 from e2b_code_interpreter import Sandbox
 
 from backend import custom_skills
+from backend.models.skill_config import SkillConfig
 from backend.settings import settings
 from backend.utils import get_chat_completion
 
@@ -32,13 +30,13 @@ The function call parameters must be returned in JSON format.\
 """
     USER_PROMPT_PREFIX = "Return the function call parameters in JSON format based on the following user prompt: "
 
-    def execute_skill(self, skill_name: str, user_prompt: str):
+    def execute_skill(self, skill: SkillConfig, user_prompt: str):
         """
         Import the skill from custom_skills package, initialize it (using GPT to fill in kwargs), and run it
         """
-        skill_class = self._get_skill_class(skill_name)
+        skill_class = BaseTool
         skill_args = self._get_skill_arguments(json.dumps(skill_class.openai_schema), user_prompt)
-        return self._execute_skill(skill_class, skill_args)
+        return self._execute_skill(skill, skill_args)
 
     def _get_skill_arguments(self, function_spec: str, user_prompt: str) -> str:
         user_prompt = (
@@ -61,30 +59,23 @@ The function call parameters must be returned in JSON format.\
             raise RuntimeError(f"Skill not found: {skill_name}") from e
 
     @staticmethod
-    def _execute_skill(skill_class: BaseTool, args: str) -> str | None:
-        if not skill_class:
-            return f"Error: Skill {skill_class.__name__} not found"
+    def _execute_skill(skill: SkillConfig, args: str) -> str | None:
+        if not skill:
+            return f"Error: Skill not found"
 
         try:
             # Ensure args are properly parsed
             parsed_args = json.loads(args)
 
-            # Add backend directory to sys.path (for relative imports)
-            backend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))  # Navigate up to backend
-            sys.path.append(backend_path)
-
             # Initialize E2B sandbox
             api_key = os.environ.get("E2B_API_KEY", "")
             sandbox = Sandbox(api_key=api_key)
 
-            # Dynamically import the correct class using the skill name
+            # Dynamically import the correct class using the skill id
             try:
-                # Construct the module path dynamically based on the skill name
-                module_name = f'backend.custom_skills.{skill_class.__name__.lower()}'
-                module = importlib.import_module(module_name)
 
                 # Get the class source code dynamically
-                class_code = inspect.getsource(getattr(module, skill_class.__name__))
+                class_code = skill.content
             except ModuleNotFoundError as e:
                 return f"Error: {str(e)}"
 
@@ -96,7 +87,7 @@ The function call parameters must be returned in JSON format.\
             {class_code}  # Embed the class code
 
             # Initialize the skill with provided arguments
-            skill_instance = {skill_class.__name__}(**{parsed_args})
+            skill_instance = {skill.title}(**{parsed_args})
 
             # Run the skill and print output
             print(skill_instance.run())
