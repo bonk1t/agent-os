@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     encryption_key: bytes = Field(default=b"")
     mailchimp_api_key: str | None = Field(default=None)
     mailchimp_list_id: str | None = Field(default=None)
+    e2b_api_key: str | None = Field(default=None)
 
     model_config = SettingsConfigDict(env_file=".env")
 

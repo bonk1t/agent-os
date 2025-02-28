@@ -1,9 +1,12 @@
 import json
 import logging
+import os
 
 from agency_swarm import BaseTool
+from e2b_code_interpreter import Sandbox
 
 from backend import custom_skills
+from backend.models.skill_config import SkillConfig
 from backend.settings import settings
 from backend.utils import get_chat_completion
 
@@ -27,13 +30,13 @@ The function call parameters must be returned in JSON format.\
 """
     USER_PROMPT_PREFIX = "Return the function call parameters in JSON format based on the following user prompt: "
 
-    def execute_skill(self, skill_name: str, user_prompt: str):
+    def execute_skill(self, skill: SkillConfig, user_prompt: str):
         """
         Import the skill from custom_skills package, initialize it (using GPT to fill in kwargs), and run it
         """
-        skill_class = self._get_skill_class(skill_name)
+        skill_class = BaseTool
         skill_args = self._get_skill_arguments(json.dumps(skill_class.openai_schema), user_prompt)
-        return self._execute_skill(skill_class, skill_args)
+        return self._execute_skill(skill, skill_args)
 
     def _get_skill_arguments(self, function_spec: str, user_prompt: str) -> str:
         user_prompt = (
@@ -56,17 +59,42 @@ The function call parameters must be returned in JSON format.\
             raise RuntimeError(f"Skill not found: {skill_name}") from e
 
     @staticmethod
-    def _execute_skill(skill_class: BaseTool, args: str) -> str | None:
-        if not skill_class:
-            return f"Error: Skill {skill_class.__name__} not found"
+    def _execute_skill(skill: SkillConfig, args: str) -> str | None:
+        if not skill:
+            return f"Error: Skill not found"
 
         try:
-            # init skill
-            func = skill_class(**eval(args))
-            # get outputs from the skill
-            return func.run()
+            # Ensure args are properly parsed
+            parsed_args = json.loads(args)
+
+            # Initialize E2B sandbox
+            api_key = os.environ.get("E2B_API_KEY", "")
+            sandbox = Sandbox(api_key=api_key)
+
+            # Dynamically import the correct class using the skill id
+            try:
+
+                # Get the class source code dynamically
+                class_code = skill.content
+            except ModuleNotFoundError as e:
+                return f"Error: {str(e)}"
+
+            # Embed the class code and skill execution inside the sandbox
+            script = f"""
+            {class_code}  # Embed the class code
+
+            # Initialize the skill with provided arguments
+            skill_instance = {skill.title}(**{parsed_args})
+
+            # Run the skill and print output
+            print(skill_instance.run())
+            """
+
+            # Run script inside E2B sandbox
+            sandbox.commands.run("pip install agency_swarm")
+            result = sandbox.run_code(script)
+            return result.logs.stdout[0].strip()
+
         except Exception as e:
             error_message = f"Error: {e}"
-            if "For further information visit" in error_message:
-                error_message = error_message.split("For further information visit")[0]
             return error_message
