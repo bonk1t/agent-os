@@ -31,7 +31,7 @@ sqlalchemy = ">=1.4.54"
 sqlalchemy-redshift = ">=0.8.14"
 tiktoken = ">=0.8.0"
 uvicorn = {extras = ["standard"], version = ">=0.34.0"}
-e2b = "^1.1.0"
+e2b-code-interpreter = "^1.0.5"
 
 [tool.poetry.group.dev.dependencies]
 poetry-plugin-export = ">=1.6.0"
